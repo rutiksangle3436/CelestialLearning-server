@@ -23,7 +23,7 @@
     "express-async-handler": "^1.1.4",
     "express-validator": "^6.9.0",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.11.8",
+    "mongoose": "^5.11.9",
     "morgan": "^1.10.0",
     "nodemon": "^2.0.6",
     "prettier": "^2.2.1"
