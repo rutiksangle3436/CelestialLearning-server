@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
+require('dotenv').config();
 
 const connectDB = async () => {
     try {
           const conn = await mongoose.connect(
-            'mongodb+srv://rootuser:root@crud.pvs1y.mongodb.net/test?authSource=admin&replicaSet=atlas-z3st35-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true',
+            process.env.MONGO_URI,
             {
                 useUnifiedTopology: true,
                 useNewUrlParser: true,
