@@ -2,6 +2,46 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs');
 const connectDB = require('../config/db');
 
+const subscriberProfile = mongoose.Schema(
+  {
+    firstName: {
+      type :String,
+      default : "NA",
+    },
+    middleName: {
+      type :String,
+      default : "NA",
+    },
+    lastName: {
+      type :String,
+      default : "NA",
+    },
+    phNum: {
+      type :String,
+      default : "NA",
+    },
+    linkedInURL: {
+      type :String,
+      default : "NA",
+    },
+    twitterURL: {
+      type :String,
+      default : "NA",
+    },
+    higherEducation: {
+      type: String,
+      default : "NA",
+    },
+    areaOfInterest: {
+      type : String,
+      default : "NA",
+    }
+  },{
+    versionKey:false,
+  }
+);
+const SubscriberProfile = mongoose.model('SubscriberProfile',subscriberProfile)
+
 const subscriberSchema = mongoose.Schema(
   {
     username: {
@@ -19,19 +59,20 @@ const subscriberSchema = mongoose.Schema(
     },
     status: {
       type: String,
-      required: true,
+      
       default: "Inactive",
     },
-    role: {
-      type: String,
-      required: true,
-    },
+    profile_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "SubscriberProfile"
+    }
   },{
     versionKey:false,
   }
 );
 
-//userSchema.p
+
+
 
 subscriberSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password)
@@ -44,6 +85,9 @@ subscriberSchema.pre('save', async function (next) {
 
   const salt = await bcrypt.genSalt(10)
   this.password = await bcrypt.hash(this.password, salt)
+  const profile = new SubscriberProfile();
+  profile.save();
+  this.profile_id = profile._id;
 })
 
 subscriberSchema.pre('updateOne', async function(next) {
@@ -51,6 +95,8 @@ subscriberSchema.pre('updateOne', async function(next) {
   this._update.password = await bcrypt.hash(this._update.password, salt)
  })
 
-const Subscriber = mongoose.model('Subscriber', subscriberSchema)
+ const Subscriber = mongoose.model('Subscriber', subscriberSchema)
 
-module.exports =  Subscriber
+
+module.exports = {Subscriber: Subscriber, SubscriberProfile : SubscriberProfile}
+

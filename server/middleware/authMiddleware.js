@@ -1,7 +1,7 @@
   
 const jwt = require('jsonwebtoken')
 const asyncHandler = require('express-async-handler')
-const User = require('../models/userModel')
+const {Subscriber} = require('../models/subscriberModel')
 
 exports.protect = asyncHandler(async (req, res, next) => {
   let token
@@ -10,23 +10,29 @@ exports.protect = asyncHandler(async (req, res, next) => {
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
-    try {
+    try 
+    {
       token = req.headers.authorization.split(' ')[1]
-
-      const decoded = jwt.verify(token,process.env.JWT_SECRET)
-
-      req.user = await User.findById(decoded.id).select('-password')
-    
-      next()
-    } catch (error) {
+      console.log(`tokennnnnnnnnnn ${token}`);
+      //const decoded = jwt.verify(token,process.env.JWT_SECRET)
+      req.token = token;
+      //req.user = await Subscriber.findOne(decoded.email).select('-password')
+      next();
+    } 
+    catch (error) 
+    {
       console.error(error)
       res.status(401)
-      throw new Error('Not authorized, token failed')
+      return res.json({
+        error: new Error('Invalid request'),
+      })
     }
   }
 
   if (!token) {
     res.status(401)
-    throw new Error('Not authorized, no token')
+    return res.json({
+      error: new Error('Invalid request'),
+    })
   }
 })

@@ -8,7 +8,11 @@ const connectDB = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 const subscriberRoutes = require('./routes/subscriberRoutes');
 const authorRoutes = require('./routes/authorRoutes');
+const session = require('express-session');
+const MongoStore = require('connect-mongo')(session);
+const mongoose = require('mongoose');
 connectDB() ;
+
 
 const app = express();
 dotenv.config();
@@ -16,6 +20,14 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json())
+
+app.use(session({
+    secret: "12345",
+    resave: false,
+    saveUninitialized: false,
+    store: new MongoStore({ mongooseConnection: mongoose.connection })
+}))
+
 app.use('/subscriber', subscriberRoutes);
 app.use('/author', authorRoutes);
 

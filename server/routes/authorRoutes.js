@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router() 
 const { check } = require("express-validator");
 const { register, verify ,login, forgetpassword, forgetpasswordverify, updatepassword } = require('../controller/authorController');
-
+const {profile ,update} = require('../controller/authorProfile');
 
 router.post(
     '/register',
@@ -51,5 +51,19 @@ router.post(
         check("confirm_password","Passwords do not match."),
         check("token", "Token is not present."),
     ], updatepassword
+);
+
+router.post(
+    '/profile',
+    [
+        check("token","Token is not present"),
+    ], profile
+);
+
+router.post(
+    '/update',
+    [
+       
+    ],update
 );
 module.exports = router

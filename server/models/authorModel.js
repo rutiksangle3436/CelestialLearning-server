@@ -2,6 +2,47 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs');
 const connectDB = require('../config/db');
 
+const authorProfile = mongoose.Schema(
+  {
+    firstName: {
+      type :String,
+      default : "NA",
+    },
+    middleName: {
+      type :String,
+      default : "NA",
+    },
+    lastName: {
+      type :String,
+      default : "NA",
+    },
+    phNum: {
+      type :String,
+      default : "NA",
+    },
+    linkedInURL: {
+      type :String,
+      default : "NA",
+    },
+    twitterURL: {
+      type :String,
+      default : "NA",
+    },
+    qualification: {
+      type: String,
+      default : "NA",
+    },
+    biography: {
+      type : String,
+      default : "NA",
+    }
+  },{
+    versionKey:false,
+  }
+);
+
+const AuthorProfile = mongoose.model('AuthorProfile',authorProfile)
+
 const authorSchema = mongoose.Schema(
   {
     username: {
@@ -22,16 +63,15 @@ const authorSchema = mongoose.Schema(
       required: true,
       default: "Inactive",
     },
-    role: {
-      type: String,
-      required: true,
+    profile_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "AuthorProfile"
     },
   },{
     versionKey:false,
   }
 );
 
-//userSchema.p
 
 authorSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password)
@@ -44,6 +84,9 @@ authorSchema.pre('save', async function (next) {
 
   const salt = await bcrypt.genSalt(10)
   this.password = await bcrypt.hash(this.password, salt)
+  const profile = new AuthorProfile();
+  profile.save();
+  this.profile_id = profile._id;
 })
 
 authorSchema.pre('updateOne', async function(next) {
@@ -53,4 +96,4 @@ authorSchema.pre('updateOne', async function(next) {
 
 const Author = mongoose.model('Author', authorSchema)
 
-module.exports =  Author
+module.exports = {Author: Author, AuthorProfile : AuthorProfile}

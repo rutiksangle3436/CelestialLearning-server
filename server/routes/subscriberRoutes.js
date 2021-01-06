@@ -1,8 +1,9 @@
 const express = require('express')
 const router = express.Router() 
 const { check } = require("express-validator");
+//const auth = require('../middleware/authMiddleware');
 const { register, verify ,login, forgetpassword, forgetpasswordverify, updatepassword } = require('../controller/subscriberController');
-
+const {profile ,update} = require('../controller/subscriberProfile');
 
 router.post(
     '/register',
@@ -11,15 +12,14 @@ router.post(
         check("email", "Please enter valid email address.").isEmail(),
         check("password", "Weak password.").isStrongPassword(),
         check("confirm-password", "password did not match")
-    ], register
+    ],register
 );
 
 router.post(
     '/verify',
     [
-        check("token", "Token is not present.")
-    ],
-    verify
+        //check("token", "Token is not present."),
+    ],verify 
 );
 
 router.post(
@@ -52,5 +52,19 @@ router.post(
         check("confirm_password","Passwords do not match."),
         check("token", "Token is not present."),
     ], updatepassword
+);
+
+router.post(
+    '/profile',
+    [
+        check("token","Token is not present"),
+    ], profile
+);
+
+router.post(
+    '/update',
+    [
+       
+    ],update
 );
 module.exports = router

@@ -1,4 +1,5 @@
-const Author = require("../models/authorModel")
+const {Author} = require("../models/authorModel")
+const {AuthorProfile} = require("../models/authorModel")
 const asyncHandler = require('express-async-handler')
 const { validationResult } = require("express-validator")
 const sgMail = require('@sendgrid/mail')
@@ -67,8 +68,7 @@ exports.register = asyncHandler(async (req, res) => {
     const author = new Author({
         username: username,
         email: email,
-        password: password,
-        role: "Author",
+        password: password,   
     });
 
     const token = jwt.sign(

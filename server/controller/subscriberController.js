@@ -1,7 +1,10 @@
-const Subscriber = require("../models/subscriberModel")
+const {Subscriber} = require("../models/subscriberModel")
+const {SubscriberProfile} = require("../models/subscriberModel")
+const {createProfile,createSubscriber} = require 
 const asyncHandler = require('express-async-handler')
 const { validationResult } = require("express-validator")
 const sgMail = require('@sendgrid/mail')
+const auth = require('../middleware/authMiddleware')
 const passwordStrength = require('check-password-strength')
 const jwt = require('jsonwebtoken')
 const e = require("express")
@@ -19,7 +22,6 @@ exports.register = asyncHandler(async (req, res) => {
             "msg" : errors.array()[0].msg,
         })   
     }
-
     const { username, email, password, confirm_password } = req.body;
 
     const emailExists = await Subscriber.findOne({email});
@@ -62,12 +64,14 @@ exports.register = asyncHandler(async (req, res) => {
             "msg" : "Weak Password",
         })
     }
+    
+    
 
     const user = new Subscriber({
         username: username,
         email: email,
         password: password,
-        role: "Subscriber",
+        
     });
 
     const token = jwt.sign(
@@ -87,7 +91,7 @@ exports.register = asyncHandler(async (req, res) => {
         html: `
                 <h1>Please use the following Link to Activate your Account</h1>
             
-                <p>${process.env.CLIENT_URL}/subscriber/verify?token=${token}</p>
+                <p>${process.env.CLIENT_URL}/subscriber/verify/${token}</p>
                 <hr />
                 <p>This Email Contains Sensitive Information</p>
                 <p>${process.env.CLIENT_URL}</p>
@@ -110,13 +114,13 @@ exports.register = asyncHandler(async (req, res) => {
             return res.json({
             message: `Email has been sent to ${email} ${token}`
             });
-       })
+        })
        .catch(error => {
          res.status(400)
          throw new Error(error)
        });
        
-     /* return res.json({
+      /*return res.json({
           "token" : token
       })*/
 })
@@ -132,7 +136,7 @@ exports.verify = asyncHandler(async (req, res) => {
         })
     }
 
-    const { token } = req.body
+    const token  = req.headers.authorization.split(' ')[1];
     jwt.verify(token, process.env.JWT_SECRET, async (err) => {
         if(err)
         {
@@ -157,7 +161,7 @@ exports.verify = asyncHandler(async (req, res) => {
                         useFindAndModify: false,
                         new: true
                     },
-                        (err, doc) => {
+                        async (err, doc) => {
                             if(err){
                                 console.log(err)
                                 res.json({
@@ -166,6 +170,7 @@ exports.verify = asyncHandler(async (req, res) => {
                             }
                             else{
                                 if(doc){
+                                    
                                     res.json({ msg: "Subscriber Activated." })
                                 }
                                 else{
@@ -228,7 +233,8 @@ exports.login = asyncHandler(async(req,res) => {
                 {
                     expiresIn: '1h'
                 }
-            )        
+           )
+            req.session.email = email;
             return res.json({
                 "msg" : " You are logged in successfully.",
                 "_id" : await user.id,
@@ -291,7 +297,7 @@ exports.forgetpassword = asyncHandler(async(req,res) => {
             html: `
                     <h1>Please use the following Link to reset your password</h1>
                     
-                    <p>${process.env.CLIENT_URL}/subscriber/verify?token=${token}</p>
+                    <p>${process.env.CLIENT_URL}/subscriber/verify/${token}</p>
                     <hr />
                     <p>This Email Contains Sensitive Information</p>
                     <p>${process.env.CLIENT_URL}</p>
@@ -326,7 +332,7 @@ exports.forgetpasswordverify = asyncHandler(async (req, res) => {
        
     }
 
-    const { token } = req.body
+    const token  = req.headers.authorization.split(' ')[1];
 
     jwt.verify(token, process.env.JWT_SECRET, (err) => {
         if(err){
@@ -357,7 +363,7 @@ exports.updatepassword = asyncHandler(async(req,res) =>{
     }
 
     const { new_password,confirm_password,token } = req.body
-    
+    //const token  = req.headers.authorization.split(' ')[1];
     if(new_password!=confirm_password)
     {
         res.status(404);
