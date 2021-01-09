@@ -106,19 +106,12 @@ exports.register = asyncHandler(async (req, res) => {
                 message: `Email has been sent to ${email} ${token}`
             });
         })
-<<<<<<< HEAD
-       .catch(error => {
-         res.status(400)
-         throw new Error(error)
-       });
-=======
         .catch(error => {
             res.status(400)
             return res.json({
                 message: "Error while sending activation link",
             })
         });
->>>>>>> 50f27701829a7647252b370e0ff3d54ae5a07d3b
 })
 
 exports.verify = asyncHandler(async (req, res) => {
@@ -288,24 +281,6 @@ exports.forgetpassword = asyncHandler(async (req, res) => {
                     <p>This Email Contains Sensitive Information</p>
                     <p>${process.env.CLIENT_URL}</p>
                   `
-<<<<<<< HEAD
-          };
-    
-          sgMail
-           .send(emailData)
-           .then(sent => {
-             return res.json({
-               message: `Email has been sent to ${email} ${token}`
-             });
-           })
-           .catch(error => {
-             res.status(400)
-             throw new Error(error)
-           });
-           return res.json({
-            "token" : token
-        })
-=======
         };
 
         sgMail
@@ -321,7 +296,6 @@ exports.forgetpassword = asyncHandler(async (req, res) => {
                     message: "Error while sending the email",
                 })
             });
->>>>>>> 50f27701829a7647252b370e0ff3d54ae5a07d3b
     }
 });
 exports.forgetpasswordverify = asyncHandler(async (req, res) => {

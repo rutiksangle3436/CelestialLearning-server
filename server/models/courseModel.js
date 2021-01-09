@@ -1,14 +1,18 @@
 const mongoose = require('mongoose');
-
+const slug = require('slug')
 const videoSchema = mongoose.Schema({
     name: {
         type: String,
         required: true
     },
-    path: {
+    videoSlug: {
         type: String
     }
-})
+});
+
+videoSchema.pre('save' | 'update', async () => {
+    this.videoSlug = this.name;
+});
 
 const Video = new mongoose.model('Video', videoSchema)
 
@@ -24,9 +28,16 @@ const sectionSchema = mongoose.Schema({
     video: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Video'
+    },
+    sectionSlug: {
+        type: String
     }
 
-})
+});
+
+sectionSchema.pre('save' | 'update', async () => {
+    this.sectionSlug = slug(this.sectionName);
+});
 
 const Section = new mongoose.model('Section', sectionSchema)
 
@@ -37,9 +48,9 @@ const contentSchema = mongoose.Schema(
             ref: 'Section'
         }]
     }
-)
+);
 
-const Content = new mongoose.model('Content', contentSchema)
+const Content = new mongoose.model('Content', contentSchema);
 
 const cousrsSchema = mongoose.Schema(
     {
@@ -68,12 +79,19 @@ const cousrsSchema = mongoose.Schema(
         prerequisite: {
             type: String
         },
+        courseSlug: {
+            type: String
+        },
         content: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Content'
         }
     }
 );
+
+cousrsSchema.pre('save' | 'update', async () => {
+    this.courseSlug = slug(this.title);
+});
 
 const Course = new mongoose.model('Course', cousrsSchema); 
 

@@ -1,13 +1,9 @@
 const { Author } = require("../models/authorModel")
-const { AuthorProfile } = require("../models/authorModel")
 const asyncHandler = require('express-async-handler')
 const { validationResult } = require("express-validator")
 const sgMail = require('@sendgrid/mail')
 const passwordStrength = require('check-password-strength')
 const jwt = require('jsonwebtoken')
-const e = require("express")
-const { token } = require("morgan")
-const { findOne } = require("../models/authorModel")
 require('dotenv').config();
 sgMail.setApiKey(process.env.SENDGRID_API)
 
@@ -278,24 +274,6 @@ exports.forgetpassword = asyncHandler(async (req, res) => {
                     <p>This Email Contains Sensitive Information</p>
                     <p>${process.env.CLIENT_URL}</p>
                   `
-<<<<<<< HEAD
-          };
-    
-          sgMail
-           .send(emailData)
-           .then(sent => {
-             return res.json({
-               message: `Email has been sent to ${email} ${token}`
-             });
-           })
-           .catch(error => {
-             res.status(400)
-             throw new Error(error)
-           });
-           return res.json({
-            "token" : token
-        })
-=======
         };
 
         sgMail
@@ -311,7 +289,6 @@ exports.forgetpassword = asyncHandler(async (req, res) => {
                     message: "Error while sending the email",
                 })
             });
->>>>>>> 50f27701829a7647252b370e0ff3d54ae5a07d3b
     }
 });
 exports.forgetpasswordverify = asyncHandler(async (req, res) => {
