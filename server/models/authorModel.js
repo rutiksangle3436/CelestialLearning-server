@@ -4,43 +4,47 @@ const bcrypt = require('bcryptjs');
 const authorProfile = mongoose.Schema(
   {
     firstName: {
-      type :String,
-      default : "NA",
+      type: String,
+      default: "NA",
     },
     middleName: {
-      type :String,
-      default : "NA",
+      type: String,
+      default: "NA",
     },
     lastName: {
-      type :String,
-      default : "NA",
+      type: String,
+      default: "NA",
     },
     phNum: {
-      type :String,
-      default : "NA",
+      type: String,
+      default: "NA",
     },
     linkedInURL: {
-      type :String,
-      default : "NA",
+      type: String,
+      default: "NA",
     },
     twitterURL: {
-      type :String,
-      default : "NA",
+      type: String,
+      default: "NA",
     },
     qualification: {
       type: String,
-      default : "NA",
+      default: "NA",
     },
     biography: {
-      type : String,
-      default : "NA",
+      type: String,
+      default: "NA",
+    },
+    extension: {
+      type: String,
+      default: "NA",
     }
-  },{
-    versionKey:false,
-  }
+  }, {
+  versionKey: false,
+}
 );
 
-const AuthorProfile = mongoose.model('AuthorProfile',authorProfile)
+const AuthorProfile = mongoose.model('AuthorProfile', authorProfile)
 
 const authorSchema = mongoose.Schema(
   {
@@ -66,9 +70,9 @@ const authorSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "AuthorProfile"
     },
-  },{
-    versionKey:false,
-  }
+  }, {
+  versionKey: false,
+}
 );
 
 
@@ -88,11 +92,11 @@ authorSchema.pre('save', async function (next) {
   this.profile_id = profile._id;
 })
 
-authorSchema.pre('updateOne', async function(next) {
+authorSchema.pre('updateOne', async function (next) {
   const salt = await bcrypt.genSalt(10)
   this._update.password = await bcrypt.hash(this._update.password, salt)
- })
+})
 
 const Author = mongoose.model('Author', authorSchema)
 
-module.exports = {Author: Author, AuthorProfile : AuthorProfile}
+module.exports = { Author: Author, AuthorProfile: AuthorProfile }

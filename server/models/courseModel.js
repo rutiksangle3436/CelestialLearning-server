@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const slug = require('slug')
+
 const videoSchema = mongoose.Schema({
     name: {
         type: String,
@@ -8,10 +8,8 @@ const videoSchema = mongoose.Schema({
     videoSlug: {
         type: String
     }
-});
-
-videoSchema.pre('save' | 'update', async () => {
-    this.videoSlug = this.name;
+}, {
+    versionKey: false,
 });
 
 const Video = new mongoose.model('Video', videoSchema)
@@ -25,18 +23,16 @@ const sectionSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    video: {
+    video: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Video'
-    },
+    }],
     sectionSlug: {
         type: String
     }
 
-});
-
-sectionSchema.pre('save' | 'update', async () => {
-    this.sectionSlug = slug(this.sectionName);
+}, {
+    versionKey: false,
 });
 
 const Section = new mongoose.model('Section', sectionSchema)
@@ -47,12 +43,14 @@ const contentSchema = mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Section'
         }]
-    }
+    }, {
+    versionKey: false,
+}
 );
 
 const Content = new mongoose.model('Content', contentSchema);
 
-const cousrsSchema = mongoose.Schema(
+const courseSchema = mongoose.Schema(
     {
         author: {
             type: mongoose.Schema.Types.ObjectId,
@@ -60,40 +58,52 @@ const cousrsSchema = mongoose.Schema(
         },
         title: {
             type: String,
-            required: true
+            required: true,
+            unique: true,
         },
-        descriprion: {
+        description: {
             type: String,
             required: true
         },
         price: {
             type: Number,
-            required: true
+            required: false,
+            default: 0
         },
-        for: [{
+        suitableFor: [{
             type: String
         }],
         platform: {
             type: String
         },
-        prerequisite: {
-            type: String
+        category: {
+            type: String,
+            required: true
         },
+        prerequisite: [{
+            type: String
+        }],
         courseSlug: {
             type: String
         },
+        thumbnailExtension: {
+            type: String,
+            default: "NA"
+        },
+        previewExtension: {
+            type: String,
+            default : "NA"
+        },
         content: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Content'
+            ref: 'Content',
         }
-    }
+    }, {
+    versionKey: false,
+}
 );
 
-cousrsSchema.pre('save' | 'update', async () => {
-    this.courseSlug = slug(this.title);
-});
-
-const Course = new mongoose.model('Course', cousrsSchema); 
+const Course = new mongoose.model('Course', courseSchema);
 
 module.exports = {
     Course: Course,

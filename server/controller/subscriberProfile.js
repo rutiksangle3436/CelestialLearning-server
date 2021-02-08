@@ -6,9 +6,11 @@ const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
 require('dotenv').config();
 const sgMail = require('@sendgrid/mail')
+const aws = require('aws-sdk')
 
+
+//url: subscriber/profile
 exports.profile = asyncHandler(async (req, res) => {
-
 
     const errors = validationResult(req);
 
@@ -20,62 +22,149 @@ exports.profile = asyncHandler(async (req, res) => {
     }
 
     const email = req.session.email;
-
     const subscriber = await Subscriber.findOne({ email });
     if (subscriber) {
-        const _id = subscriber.profile_id;
+        const _id = (subscriber.profile_id);
         const profiledata = await SubscriberProfile.findOne({ _id: _id });
         if (profiledata) {
+
+            res.status(200);
             return res.json({
-                message: profiledata,
+                profiledata,
             }
             );
         }
         else {
+            res.status(200);
             return res.json({
                 message: "Profile not added.",
             })
         }
     }
     else {
+        res.status(200);
         return res.json({
-            message: "Incorrect user details.",
+            message: "Incorrect subscriber details.",
         })
     }
 
+})
 
+//url: subscriber/profileImageView
+exports.profileImageView = asyncHandler(async (req, res) => {
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        res.status(401);
+        return res.json({
+            message: errors.array()[0].msg,
+        })
+    }
+
+    const email = req.session.email;
+    const subscriber = await Subscriber.findOne({ email });
+    if (subscriber) {
+        const _id = (subscriber._id);
+        const profile = await SubscriberProfile.findOne({ _id: subscriber.profile_id });
+        if (profile) {
+            url = `https://celestiallearning.s3.amazonaws.com/Subscriber_Profile_Images/${_id}.${profile.extension}`
+            res.status(200);
+            return res.json({
+
+                url
+            })
+        }
+        else {
+            res.status(200);
+            return res.json({
+                message: "No such profile available"
+            })
+        }
+
+
+    }
 });
-
+//url: subscriber/update
 exports.update = asyncHandler(async (req, res) => {
 
-    const { firstName, middleName, lastName, phNum, linkedInURL, twitterURL, higherEducation, areaOfInterest } = req.body;
+    const { firstName, middleName, lastName, phNum, linkedInURL, twitterURL, areaOfInterest, higherEducation } = req.body;
     const email = req.session.email;
 
     const subscriber = await Subscriber.findOne({ email });
     const _id = subscriber.profile_id;
     const profile = await SubscriberProfile.findOne({ _id });
     const filter = { _id: await profile._id }
+
     if (profile) {
-        const update = { firstName: firstName, middleName: middleName, lastName: lastName, phNum: phNum, linkedInURL: linkedInURL, twitterURL: twitterURL, higherEducation: higherEducation, areaOfInterest: areaOfInterest }
+        const update = { firstName: firstName, middleName: middleName, lastName: lastName, phNum: phNum, linkedInURL: linkedInURL, twitterURL: twitterURL, areaOfInterest: areaOfInterest, higherEducation: higherEducation }
         await SubscriberProfile.findOneAndUpdate(filter, update,
             {
                 useFindAndModify: false,
                 new: true
-            },
+            }
         )
+        res.status(200);
         return res.json({
             message: "profile updated successfully"
         })
+
     }
+
     else {
+        res.status(200);
         return res.json({
             message: "no such author exists.",
         })
     }
-
-
 });
 
+//url : subscriber/profileImageUpdate
+exports.profileImageUpdate = asyncHandler(async (req, res) => {
+
+    var flag = 0;
+    const email = req.session.email;
+    const subscriber = await Subscriber.findOne({ email });
+    const _id = subscriber._id;
+
+    if (req.file) {
+        let myImage = req.file.originalname.split(".");
+        fileExtension = myImage[myImage.length - 1];
+        await SubscriberProfile.updateOne({ _id: subscriber.profile_id }, { extension: fileExtension });
+        s3 = new aws.S3({
+            credentials: {
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+            }
+        })
+        params = {
+            Bucket: process.env.BUCKET_NAME,
+            Key: `Subscriber_Profile_Images/${_id}.${fileExtension}`,
+            Body: req.file.buffer,
+            ACL: 'public-read'
+        }
+        flag = 1;
+    }
+    if (flag == 1) {
+        s3.upload(params, (error, data) => {
+            if (error) {
+                res.status(500);
+                return res.json({
+                    message: `Error while uploading`,
+                })
+            }
+            else {
+                res.status(200);
+                return res.json({
+                    message: "profile image updated successfully"
+                })
+            }
+        })
+    }
+})
+
+
+//url:  subscriber/emailChange
 exports.emailChange = asyncHandler(async (req, res) => {
 
     const { new_email, password } = req.body;
@@ -138,6 +227,7 @@ exports.emailChange = asyncHandler(async (req, res) => {
 
 })
 
+//url:  subscriber/verify1
 exports.verify1 = asyncHandler(async (req, res) => {
     const error = validationResult(req);
 
@@ -148,48 +238,37 @@ exports.verify1 = asyncHandler(async (req, res) => {
         })
     }
 
-    const token = req.headers.authorization.split(' ')[1];
 
-    jwt.verify(token, process.env.JWT_SECRET, async (err) => {
-        if (err) {
-            res.status(401)
-            return res.json({
-                message: "Token expires or invalid",
-            })
-        }
-        else {
-            const { new_email } = jwt.decode(token);
+    const { new_email } = jwt.decode(req.token);
 
-            const email = req.session.email;
+    const email = req.session.email;
 
-            const subscriber = await Subscriber.findOne({ email });
-            if (subscriber) {
+    const subscriber = await Subscriber.findOne({ email });
+    if (subscriber) {
 
 
-                const filter = { _id: subscriber._id }
-                const update = { email: new_email }
+        const filter = { _id: subscriber._id }
+        const update = { email: new_email }
 
-                await Subscriber.findOneAndUpdate(filter, update,
-                    {
-                        useFindAndModify: false,
-                        new: true
-                    },
-                )
-                req.session.email = new_email;
-                return res.json({
-                    message: "your email has been updated."
-                })
-            }
-            else {
-                return res.json({
-                    message: "no such user.",
-                })
-            }
-        }
-    })
+        await Subscriber.findOneAndUpdate(filter, update,
+            {
+                useFindAndModify: false,
+                new: true
+            },
+        )
+        req.session.email = new_email;
+        return res.json({
+            message: "your email has been updated."
+        })
+    }
+    else {
+        return res.json({
+            message: "no such user.",
+        })
+    }
 });
 
-
+//url:  subscriber/passwordChange
 exports.passwordChange = asyncHandler(async (req, res) => {
 
     const { old_password, new_password } = req.body;

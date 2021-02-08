@@ -1,10 +1,10 @@
 {
   "name": "celestiallearning",
   "version": "1.0.0",
-  "description": "",
+  "description": "Celestial Learning Node server.",
   "main": "index.js",
   "scripts": {
-    "server": "nodemon server/server.js",
+    "start": "nodemon server/server.js",
     "client": "npm start --prefix client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "format": "prettier --write server/**/*.js"
@@ -12,13 +12,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.0.20",
     "@sendgrid/mail": "^7.4.0",
+    "aws-sdk": "^2.825.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "check-password-strength": "^1.0.15",
     "colors": "^1.4.0",
     "concurrently": "^5.3.0",
     "connect-mongo": "^3.2.0",
+    "cookie-signature": "^1.1.0",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
@@ -26,11 +29,24 @@
     "express-server": "^0.7.0",
     "express-session": "^1.17.1",
     "express-validator": "^6.9.0",
+    "fluent-ffmpeg": "^2.1.2",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.11.9",
     "morgan": "^1.10.0",
+    "multer": "^1.4.2",
+    "ngrok": "^3.4.0",
     "nodemon": "^2.0.6",
     "prettier": "^2.2.1",
+    "razorpay": "^2.0.6",
+    "shortid": "^2.2.16",
     "slug": "^4.0.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vishalkale151071/CelestialLearning-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vishalkale151071/CelestialLearning-server/issues"
+  },
+  "homepage": "https://github.com/vishalkale151071/CelestialLearning-server#readme"
 }

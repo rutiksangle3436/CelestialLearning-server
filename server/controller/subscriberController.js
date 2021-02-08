@@ -3,14 +3,15 @@ const { SubscriberProfile } = require("../models/subscriberModel")
 const asyncHandler = require('express-async-handler')
 const { validationResult } = require("express-validator")
 const sgMail = require('@sendgrid/mail')
-const auth = require('../middleware/authMiddleware')
 const passwordStrength = require('check-password-strength')
 const jwt = require('jsonwebtoken')
 const e = require("express")
 const { token } = require("morgan")
+const cookie = require('cookie-signature')
 require('dotenv').config();
 sgMail.setApiKey(process.env.SENDGRID_API)
 
+//url: subscriber/register
 exports.register = asyncHandler(async (req, res) => {
 
     const errors = validationResult(req);
@@ -114,6 +115,7 @@ exports.register = asyncHandler(async (req, res) => {
         });
 })
 
+//url: subscriber/verify
 exports.verify = asyncHandler(async (req, res) => {
 
     const error = validationResult(req)
@@ -125,64 +127,53 @@ exports.verify = asyncHandler(async (req, res) => {
         })
     }
 
-    const token = req.headers.authorization.split(' ')[1];
+    const { email } = jwt.decode(req.token);
+    const subscriber = await Subscriber.findOne({ email });
+    if (subscriber) {
+        if (subscriber.status == "Inactive") {
+            const filter = { email: email }
+            const update = { status: "Active" }
 
-    jwt.verify(token, process.env.JWT_SECRET, async (err) => {
-        if (err) {
-            res.status(401)
-            return res.json({
-                message: "Token expires or invalid",
-            })
+            Subscriber.findOneAndUpdate(filter, update,
+                {
+                    useFindAndModify: false,
+                    new: true
+                },
+                async (err, doc) => {
+                    if (err) {
+
+                        return res.json({
+                            message: "Unregistered token."
+                        })
+                    }
+                    else {
+                        if (doc) {
+
+                            return res.json({ message: "Subscriber Activated." })
+                        }
+                        else {
+                            return res.json({ message: "Unregistered Token." })
+                        }
+                    }
+                }
+            )
         }
         else {
-
-
-            const { email } = jwt.decode(token);
-            const subscriber = await Subscriber.findOne({ email });
-            if (subscriber) {
-                if (subscriber.status == "Inactive") {
-                    const filter = { email: email }
-                    const update = { status: "Active" }
-
-                    Subscriber.findOneAndUpdate(filter, update,
-                        {
-                            useFindAndModify: false,
-                            new: true
-                        },
-                        async (err, doc) => {
-                            if (err) {
-
-                                return res.json({
-                                    message: "Unregistered token."
-                                })
-                            }
-                            else {
-                                if (doc) {
-
-                                    return res.json({ message: "Subscriber Activated." })
-                                }
-                                else {
-                                    return res.json({ message: "Unregistered Token." })
-                                }
-                            }
-                        }
-                    )
-                }
-                else {
-                    return res.json({
-                        message: "You have already activated your account.",
-                    })
-                }
-            }
-            else {
-                return res.json({
-                    message: "This email does not exist",
-                })
-            }
+            return res.json({
+                message: "You have already activated your account.",
+            })
         }
-    })
-});
+    }
+    else {
+        return res.json({
+            message: "This email does not exist",
+        })
+    }
+}
 
+);
+
+//url: subscriber/login
 exports.login = asyncHandler(async (req, res) => {
     const error = validationResult(req);
     if (!error.isEmpty()) {
@@ -217,11 +208,10 @@ exports.login = asyncHandler(async (req, res) => {
             )
             req.session.email = email;
             req.session.token = token;
-
+            const ck = cookie.sign(req.sessionID, '12345');
             return res.json({
                 message: " You are logged in successfully.",
-                _id: await user.id,
-
+                target: ck,
             })
         }
         else {
@@ -238,6 +228,7 @@ exports.login = asyncHandler(async (req, res) => {
     }
 });
 
+//url: subscriber/forgetpassword
 exports.forgetpassword = asyncHandler(async (req, res) => {
     const error = validationResult(req);
     if (!error.isEmpty()) {
@@ -298,6 +289,8 @@ exports.forgetpassword = asyncHandler(async (req, res) => {
             });
     }
 });
+
+//url: subscriber/forgetpasswordverify
 exports.forgetpasswordverify = asyncHandler(async (req, res) => {
     const error = validationResult(req);
 
@@ -308,26 +301,14 @@ exports.forgetpasswordverify = asyncHandler(async (req, res) => {
         })
 
     }
+    const { email } = jwt.decode(req.token);
+    return res.json({
+        message: "success",
 
-    const token = req.headers.authorization.split(' ')[1];
-
-    jwt.verify(token, process.env.JWT_SECRET, (err) => {
-        if (err) {
-            res.status(401)
-            return res.json({
-                message: "Token expires or invalid",
-            })
-
-        } else {
-            const { email } = jwt.decode(token);
-            return res.json({
-                message: "success",
-
-            })
-        }
     })
 })
 
+//url: subscriber/updatepassword
 exports.updatepassword = asyncHandler(async (req, res) => {
     const errors = validationResult(req);
 

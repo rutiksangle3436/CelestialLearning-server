@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken')
 require('dotenv').config();
 sgMail.setApiKey(process.env.SENDGRID_API)
 
+//url: author/register
 exports.register = asyncHandler(async (req, res) => {
 
     const errors = validationResult(req);
@@ -110,6 +111,7 @@ exports.register = asyncHandler(async (req, res) => {
         });
 })
 
+//url: author/verify
 exports.verify = asyncHandler(async (req, res) => {
     const error = validationResult(req);
 
@@ -175,9 +177,7 @@ exports.verify = asyncHandler(async (req, res) => {
     })
 })
 
-
-
-
+//url: author/login
 exports.login = asyncHandler(async (req, res) => {
     const error = validationResult(req);
     if (!error.isEmpty()) {
@@ -218,6 +218,7 @@ exports.login = asyncHandler(async (req, res) => {
             })
         }
         else {
+            res.status(401)
             return res.json({
                 message: "Please activate your account.",
             })
@@ -225,12 +226,15 @@ exports.login = asyncHandler(async (req, res) => {
 
     }
     else {
+        res.status(401)
         return res.json({
+
             message: "Incorrect username or password.",
         })
     }
 });
 
+//url: author/forgetpassword
 exports.forgetpassword = asyncHandler(async (req, res) => {
     const error = validationResult(req);
     if (!error.isEmpty()) {
@@ -291,6 +295,8 @@ exports.forgetpassword = asyncHandler(async (req, res) => {
             });
     }
 });
+
+//url: author/forgetpasswordverify
 exports.forgetpasswordverify = asyncHandler(async (req, res) => {
     const error = validationResult(req);
 
@@ -321,6 +327,7 @@ exports.forgetpasswordverify = asyncHandler(async (req, res) => {
     })
 })
 
+//url: author/updatepassword
 exports.updatepassword = asyncHandler(async (req, res) => {
     const errors = validationResult(req);
 
